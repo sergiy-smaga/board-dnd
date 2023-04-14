@@ -1,56 +1,24 @@
-import { Col, Row, Space, Typography } from "antd";
-import {
-  DragDropContext,
-  DropResult,
-  DraggableLocation,
-} from "react-beautiful-dnd";
-import { useAppSelector, useAppDispatch } from "./redux/hooks";
-import {
-  ColumnType,
-  TaskModel,
-  TasksModel,
-  moveTask,
-} from "./redux/columnTasksSlice";
-import { TaskColumn } from "./components/TaskColumn";
-import { Form } from "./components/Form";
+import React from 'react';
+import { Col, Row, Space, Typography } from 'antd';
+import { DragDropContext, type DropResult } from 'react-beautiful-dnd';
+import { useAppSelector, useAppDispatch } from './redux/hooks';
+import { ColumnType, type TaskModel, type TasksModel } from './redux/types';
+import { moveTask } from './redux/columnTasksSlice';
 
-const reorder = (list: TaskModel[], startIndex: number, endIndex: number) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
+import { TaskColumn } from './components/TaskColumn';
+import SearchForm from './components/SearchForm';
+import { move, reorder } from './helpers';
 
-  return result;
-};
-
-const move = (
-  source: TaskModel[],
-  destination: TaskModel[],
-  droppableSource: DraggableLocation,
-  droppableDestination: DraggableLocation
-) => {
-  const sourceClone = Array.from(source);
-  const destClone = Array.from(destination);
-  const [removed] = sourceClone.splice(droppableSource.index, 1);
-
-  destClone.splice(droppableDestination.index, 0, removed);
-
-  const result: {
-    [key: string]: TaskModel[];
-  } = {};
-  result[droppableSource.droppableId] = sourceClone;
-  result[droppableDestination.droppableId] = destClone;
-
-  return result;
-};
-
-export const App = () => {
+export const App: React.FC = () => {
   const allTasks = useAppSelector((state) => state.columnTasks.tasks);
+  const error = useAppSelector((state) => state.columnTasks.error);
+
   const dispatch = useAppDispatch();
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
-    if (!destination) {
+    if (destination == null) {
       return;
     }
     const sInd: ColumnType = source.droppableId as ColumnType;
@@ -76,22 +44,26 @@ export const App = () => {
 
   return (
     <Space align="center">
-      <Space align="center" direction="vertical" className="full-width">
+      <Space align="center" direction="vertical" style={{ width: '100vw' }}>
         <Typography.Title>Task Board</Typography.Title>
-        <Form />
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Row gutter={20}>
-            <Col flex="auto">
-              <TaskColumn columnName={ColumnType.TO_DO} />
-            </Col>
-            <Col flex="auto">
-              <TaskColumn columnName={ColumnType.IN_PROGRESS} />
-            </Col>
-            <Col flex="auto">
-              <TaskColumn columnName={ColumnType.DONE} />
-            </Col>
-          </Row>
-        </DragDropContext>
+        <SearchForm />
+        {error ? (
+          <Typography.Title type="danger">{error}</Typography.Title>
+        ) : (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Row gutter={20}>
+              <Col flex="auto">
+                <TaskColumn columnName={ColumnType.TO_DO} />
+              </Col>
+              <Col flex="auto">
+                <TaskColumn columnName={ColumnType.IN_PROGRESS} />
+              </Col>
+              <Col flex="auto">
+                <TaskColumn columnName={ColumnType.DONE} />
+              </Col>
+            </Row>
+          </DragDropContext>
+        )}
       </Space>
     </Space>
   );
