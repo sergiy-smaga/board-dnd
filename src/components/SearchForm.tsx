@@ -35,7 +35,11 @@ const SearchForm: React.FC = () => {
           name="url"
           rules={[{ required: true }, { type: 'url' }, { type: 'string' }]}
         >
-          <Input style={{ width: '500px' }} placeholder="Enter repo URL" />
+          <Input
+            data-testid="input"
+            style={{ width: '500px' }}
+            placeholder="Enter repo URL"
+          />
         </Form.Item>
         <Form.Item shouldUpdate>
           {() => (
